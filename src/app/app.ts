@@ -1,6 +1,6 @@
-import { HttpClient } from "@angular/common/http";
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { JiraService } from "./jira";
 
 @Component({
   selector: 'app-root',
@@ -10,39 +10,22 @@ import { RouterOutlet } from '@angular/router';
 })
 export class App {
 
-  private http = inject(HttpClient);
-  private token = '';
-  private url = '';
+  private jira = inject(JiraService);
 
   aktualisieren() {
-    this.token = localStorage.getItem('token') || '';
-    if (!this.token) {
-      this.token = prompt("Enter your Jira Token") || '';
-      localStorage.setItem('token', this.token);
-    }
+    let url = this.getConfig('url')
+    let token = this.getConfig('token')
 
-    this.url = localStorage.getItem('url') || '';
-    if (!this.url) {
-      this.url = prompt("Enter your Jira URL") || '';
-      localStorage.setItem('url', this.url);
-    }
-
-    this.queryJira(21232);
+    this.jira.query(url, token, 21232);
   }
 
-  queryJira(sprintId: number) {
-    this.http.get(`${this.url}/rest/api/2/search?jql=sprint=${sprintId}`, {
-      headers: {
-        'Authorization': `Bearer ${this.token}`,
-        'Accept': 'application/json'
-      }
-    }).subscribe({
-      next: (data) => {
-        console.log(data);
-      },
-      error: (error) => {
-        console.error('There was an error!', error);
-      }
-    })
+  private getConfig(name: string) {
+    let config = localStorage.getItem(name) || '';
+    if (!config) {
+      config = prompt(`Enter ${name}`) || '';
+      localStorage.setItem(name, config);
+    }
+    return config;
   }
+
 }
